@@ -57,13 +57,14 @@ message UpdateTodoRequest {
 	bool status = 3;
 }
 message UpdateTodoReply {
+	string message = 1;
 }
 
 message DeleteTodoRequest {
 	int64 id = 1;
 }
 message DeleteTodoReply {
-
+	string message = 1;
 }
 
 message GetTodoRequest {

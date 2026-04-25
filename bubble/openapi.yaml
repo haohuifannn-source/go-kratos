@@ -127,7 +127,9 @@ components:
                     type: string
         api.bubble.v1.DeleteTodoReply:
             type: object
-            properties: {}
+            properties:
+                message:
+                    type: string
         api.bubble.v1.GetTodoReply:
             type: object
             properties:
@@ -151,7 +153,9 @@ components:
                     type: boolean
         api.bubble.v1.UpdateTodoReply:
             type: object
-            properties: {}
+            properties:
+                message:
+                    type: string
         api.bubble.v1.UpdateTodoRequest:
             type: object
             properties:

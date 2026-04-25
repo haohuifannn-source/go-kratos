@@ -43,14 +43,72 @@ func (s *TodoService) CreateTodo(ctx context.Context, req *pb.CreateTodoRequest)
 	}, nil
 }
 func (s *TodoService) UpdateTodo(ctx context.Context, req *pb.UpdateTodoRequest) (*pb.UpdateTodoReply, error) {
-	return &pb.UpdateTodoReply{}, nil
+	// 参数校验
+	if req.Id <= 0 {
+		return nil, errors.New("参数错误")
+	}
+	// 调用逻辑处理
+	todo := &biz.Todo{
+		ID:     req.Id,
+		Title:  req.Title,
+		Status: req.Status,
+	}
+	if err := s.uc.UpdataTodo(ctx, todo); err != nil {
+		return nil, errors.New("内部错误")
+	}
+	// 返回结果
+	return &pb.UpdateTodoReply{
+		Message: "更新成功！",
+	}, nil
 }
+
 func (s *TodoService) DeleteTodo(ctx context.Context, req *pb.DeleteTodoRequest) (*pb.DeleteTodoReply, error) {
-	return &pb.DeleteTodoReply{}, nil
+	if req.Id <= 0 {
+		return nil, errors.New("参数错误")
+	}
+	err := s.uc.DeleteTodo(ctx, req.Id)
+	if err != nil {
+		return nil, errors.New("内部错误")
+	}
+	return &pb.DeleteTodoReply{
+		Message: "删除成功",
+	}, nil
 }
 func (s *TodoService) GetTodo(ctx context.Context, req *pb.GetTodoRequest) (*pb.GetTodoReply, error) {
-	return &pb.GetTodoReply{}, nil
+	// 参数校验
+	if req.Id <= 0 {
+		return nil, errors.New("参数错误")
+	}
+	// 调用查询的逻辑
+	t, err := s.uc.GetTodo(ctx, req.Id)
+	if err != nil {
+		//return nil, errors.New("内部错误")
+		// 返回自定义错误码
+		return nil, pb.ErrorTodoNotFound("id:%v todo is not found", req.Id)
+	}
+	// 返回参数
+	return &pb.GetTodoReply{
+		Todo: &pb.Todo{
+			Id:     t.ID,
+			Title:  t.Title,
+			Status: t.Status,
+		},
+	}, nil
 }
 func (s *TodoService) ListTodo(ctx context.Context, req *pb.ListTodoRequest) (*pb.ListTodoReply, error) {
-	return &pb.ListTodoReply{}, nil
+	res, err := s.uc.ListTodo(ctx)
+	if err != nil {
+		return nil, errors.New("内部错误")
+	}
+	data := make([]*pb.Todo, 0, len(res))
+	for _, v := range res {
+		data = append(data, &pb.Todo{
+			Id:     v.ID,
+			Title:  v.Title,
+			Status: v.Status,
+		})
+	}
+	return &pb.ListTodoReply{
+		Data: data,
+	}, nil
 }

@@ -43,8 +43,36 @@ func NewTodoUsecase(repo TodoRepo, logger log.Logger) *TodoUsecase {
 }
 
 // CreateTodo creates a Todo, and returns the new Todo.
-// 对外提供的业务函数
+// 对外提供的业务函数，实现复杂的业务逻辑
 func (uc *TodoUsecase) CreateTodo(ctx context.Context, t *Todo) (*Todo, error) {
 	uc.log.WithContext(ctx).Infof("Create: %#v", t)
 	return uc.repo.Save(ctx, t) // 调用save函数
+}
+
+// GetTodo creates a Todo, and returns the new Todo.
+// 对外提供的业务函数，实现复杂的业务逻辑
+func (uc *TodoUsecase) GetTodo(ctx context.Context, id int64) (*Todo, error) {
+	uc.log.WithContext(ctx).Infof("Get: %#v", id)
+	return uc.repo.FindByID(ctx, id) // 调用save函数
+}
+
+// UpdataTodo creates a Todo, and returns the new Todo.
+// 对外提供的业务函数，实现复杂的业务逻辑
+func (uc *TodoUsecase) UpdataTodo(ctx context.Context, t *Todo) error {
+	uc.log.WithContext(ctx).Infof("Put: %#v", t)
+	return uc.repo.Update(ctx, t) // 调用save函数
+}
+
+// DeleteTodo creates a Todo, and returns the new Todo.
+// 对外提供的业务函数，实现复杂的业务逻辑
+func (uc *TodoUsecase) DeleteTodo(ctx context.Context, id int64) error {
+	uc.log.WithContext(ctx).Infof("Delete: %#v", id)
+	return uc.repo.Delete(ctx, id) // 调用save函数
+}
+
+// DeleteTodo creates a Todo, and returns the new Todo.
+// 对外提供的业务函数，实现复杂的业务逻辑
+func (uc *TodoUsecase) ListTodo(ctx context.Context) ([]*Todo, error) {
+	uc.log.WithContext(ctx).Infof("Get: %#v")
+	return uc.repo.ListAll(ctx) // 调用save函数
 }

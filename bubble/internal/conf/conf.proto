@@ -8,6 +8,7 @@ import "google/protobuf/duration.proto";
 message Bootstrap {
   Server server = 1;
   Data data = 2;
+  string mode = 3;
 }
 
 message Server {
@@ -28,7 +29,7 @@ message Server {
 message Data {
   message Database {
     string driver = 1;
-    string source = 2;
+    string dsn = 2;
   }
   message Redis {
     string network = 1;
