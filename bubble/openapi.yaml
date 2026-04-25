@@ -25,6 +25,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/helloworld.v1.HelloReply'
+    /v1/auth/fresh:
+        post:
+            tags:
+                - Todo
+            operationId: Todo_RefreshToken
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/api.bubble.v1.RefreshTokenRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/api.bubble.v1.RefreshTokenReply'
     /v1/todo:
         post:
             tags:
@@ -142,6 +160,22 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/api.bubble.v1.Todo'
+        api.bubble.v1.RefreshTokenReply:
+            type: object
+            properties:
+                accessToken:
+                    type: string
+                refreshToken:
+                    type: string
+                expiresIn:
+                    type: string
+                tokenType:
+                    type: string
+        api.bubble.v1.RefreshTokenRequest:
+            type: object
+            properties:
+                refreshToken:
+                    type: string
         api.bubble.v1.Todo:
             type: object
             properties:

@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Todo_CreateTodo_FullMethodName = "/api.bubble.v1.Todo/CreateTodo"
-	Todo_UpdateTodo_FullMethodName = "/api.bubble.v1.Todo/UpdateTodo"
-	Todo_DeleteTodo_FullMethodName = "/api.bubble.v1.Todo/DeleteTodo"
-	Todo_GetTodo_FullMethodName    = "/api.bubble.v1.Todo/GetTodo"
-	Todo_ListTodo_FullMethodName   = "/api.bubble.v1.Todo/ListTodo"
+	Todo_CreateTodo_FullMethodName   = "/api.bubble.v1.Todo/CreateTodo"
+	Todo_UpdateTodo_FullMethodName   = "/api.bubble.v1.Todo/UpdateTodo"
+	Todo_DeleteTodo_FullMethodName   = "/api.bubble.v1.Todo/DeleteTodo"
+	Todo_GetTodo_FullMethodName      = "/api.bubble.v1.Todo/GetTodo"
+	Todo_ListTodo_FullMethodName     = "/api.bubble.v1.Todo/ListTodo"
+	Todo_RefreshToken_FullMethodName = "/api.bubble.v1.Todo/RefreshToken"
 )
 
 // TodoClient is the client API for Todo service.
@@ -35,6 +36,7 @@ type TodoClient interface {
 	DeleteTodo(ctx context.Context, in *DeleteTodoRequest, opts ...grpc.CallOption) (*DeleteTodoReply, error)
 	GetTodo(ctx context.Context, in *GetTodoRequest, opts ...grpc.CallOption) (*GetTodoReply, error)
 	ListTodo(ctx context.Context, in *ListTodoRequest, opts ...grpc.CallOption) (*ListTodoReply, error)
+	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenReply, error)
 }
 
 type todoClient struct {
@@ -95,6 +97,16 @@ func (c *todoClient) ListTodo(ctx context.Context, in *ListTodoRequest, opts ...
 	return out, nil
 }
 
+func (c *todoClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefreshTokenReply)
+	err := c.cc.Invoke(ctx, Todo_RefreshToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TodoServer is the server API for Todo service.
 // All implementations must embed UnimplementedTodoServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type TodoServer interface {
 	DeleteTodo(context.Context, *DeleteTodoRequest) (*DeleteTodoReply, error)
 	GetTodo(context.Context, *GetTodoRequest) (*GetTodoReply, error)
 	ListTodo(context.Context, *ListTodoRequest) (*ListTodoReply, error)
+	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenReply, error)
 	mustEmbedUnimplementedTodoServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedTodoServer) GetTodo(context.Context, *GetTodoRequest) (*GetTo
 }
 func (UnimplementedTodoServer) ListTodo(context.Context, *ListTodoRequest) (*ListTodoReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListTodo not implemented")
+}
+func (UnimplementedTodoServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefreshToken not implemented")
 }
 func (UnimplementedTodoServer) mustEmbedUnimplementedTodoServer() {}
 func (UnimplementedTodoServer) testEmbeddedByValue()              {}
@@ -240,6 +256,24 @@ func _Todo_ListTodo_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Todo_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TodoServer).RefreshToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Todo_RefreshToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TodoServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Todo_ServiceDesc is the grpc.ServiceDesc for Todo service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var Todo_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListTodo",
 			Handler:    _Todo_ListTodo_Handler,
+		},
+		{
+			MethodName: "RefreshToken",
+			Handler:    _Todo_RefreshToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

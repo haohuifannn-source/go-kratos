@@ -6,6 +6,9 @@ import (
 
 	pb "bubble/api/bubble/v1"
 	"bubble/internal/biz"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type TodoService struct {
@@ -111,4 +114,9 @@ func (s *TodoService) ListTodo(ctx context.Context, req *pb.ListTodoRequest) (*p
 	return &pb.ListTodoReply{
 		Data: data,
 	}, nil
+}
+
+func (s *TodoService) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenReply, error) {
+
+	return nil, status.Error(codes.Unimplemented, "method RefreshToken not implemented")
 }

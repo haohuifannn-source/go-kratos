@@ -14,3 +14,11 @@ data:
     read_timeout: 0.2s
     write_timeout: 0.2s
 mode: dev
+token:
+    accessToken:
+      accessSecret: "夏天夏天悄悄过去"
+      accessExpire: 60
+    refreshToken:
+      refreshSecret: "冬天冬天悄悄来临"
+      refreshExpire: 120
+

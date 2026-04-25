@@ -100,8 +100,9 @@ func main() {
 	fmt.Printf("---->bc.Server : %#v\n", bc.Server)
 	fmt.Printf("---->bc.Data : %#v\n", bc.Data)
 	fmt.Printf("---->bc.Mode : %#v\n", bc.Mode)
+	fmt.Printf("---->bc.Mode : %#v\n", bc.Token)
 
-	app, cleanup, err := wireApp(bc.Server, bc.Data, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Data, bc.Token, logger)
 	if err != nil {
 		panic(err)
 	}

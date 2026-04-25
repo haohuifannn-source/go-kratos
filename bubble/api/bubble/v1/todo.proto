@@ -36,6 +36,13 @@ service Todo {
 			get : "/v1/todos",
 		};
 	};
+	rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenReply){
+		option(google.api.http) = {
+			post : "/v1/auth/fresh",
+			body : "*",
+		};
+	};
+
 }
 
 message todo{
@@ -79,4 +86,14 @@ message ListTodoRequest {
 }
 message ListTodoReply {
 	repeated todo data = 1;
+}
+
+message RefreshTokenRequest {
+	string refresh_token = 1;
+}
+message RefreshTokenReply {
+	string access_token = 1;
+	string refresh_token = 2;
+	int64 expires_in = 3;
+	string token_type = 4;
 }

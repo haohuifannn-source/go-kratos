@@ -445,3 +445,62 @@ message ListTodoReply {
 }
 ```
 
+## 自己实现Token认证
+
+### 在Create除加入token的生成
+1. 修改.conf文件和yaml文件，加入token所需要的东西
+***注意***: conf文件的命名要和yaml的对应，在proto文件中生成的代码access_token会被生成go中的accessToken/access_token，这里需要和yaml的对齐
+
+2. 修改完毕后需要运行下列的命令去生成对应的代码
+```bash
+make config
+```
+
+3. 在biz层接入*conf.Token结构体，需要修改wire文件的传入参数，然后修改main函数传入参数的地方，最后运行
+```bash
+wire
+```
+
+4. 在third_party处加入自定义的生成JWT的代码
+```go
+// GenerateToken, 登录的时候生成AccessToken和RefreshToken
+func GenerateToken(secret string, iat, seconds, Id int64) (string, error) {
+	claims := jwt.MapClaims{
+		"Id":  Id,
+		"iat": iat,
+		"exp": iat + seconds,
+	}
+	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).
+		SignedString([]byte(secret))
+}
+```
+
+5. 为biz加入一个redis的interface
+```go
+type TodoRepo interface {
+	Save(context.Context, *Todo) (*Todo, error)
+	Update(context.Context, *Todo) error
+	Delete(context.Context, int64) error
+	FindByID(context.Context, int64) (*Todo, error)
+	ListAll(context.Context) ([]*Todo, error)
+
+	//redis的操作
+	SetRefreshToken(context.Context, int64, string, time.Duration) error
+}
+```
+
+6. 在data的todo.go中实现这一个接口
+```go
+func (r *TodoRepo) SetRefreshToken(ctx context.Context, id int64, token string, expires time.Duration) error {
+	key := fmt.Sprintf("redis:refreshtoken:%v", id)
+	err := r.data.redis.Set(ctx, key, token, expires).Err()
+	if err != nil {
+		return err
+	}
+	fmt.Println("----->redis 设置成功")
+	return nil
+}
+```
+
+
+

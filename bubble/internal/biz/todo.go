@@ -2,8 +2,12 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	v1 "bubble/api/helloworld/v1"
+	"bubble/internal/conf"
+	"bubble/third_party/auth"
 
 	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
@@ -29,24 +33,58 @@ type TodoRepo interface {
 	Delete(context.Context, int64) error
 	FindByID(context.Context, int64) (*Todo, error)
 	ListAll(context.Context) ([]*Todo, error)
+
+	//redis的操作
+	SetRefreshToken(context.Context, int64, string, time.Duration) error
 }
 
 // TodoUsecase is a todo usecase.
 type TodoUsecase struct {
 	repo TodoRepo
 	log  *log.Helper
+	conf *conf.Token
 }
 
 // NewTodoUsecase new a todo usecase.
-func NewTodoUsecase(repo TodoRepo, logger log.Logger) *TodoUsecase {
-	return &TodoUsecase{repo: repo, log: log.NewHelper(logger)}
+func NewTodoUsecase(repo TodoRepo, logger log.Logger, c *conf.Token) *TodoUsecase {
+	return &TodoUsecase{repo: repo, log: log.NewHelper(logger), conf: c}
 }
 
 // CreateTodo creates a Todo, and returns the new Todo.
 // 对外提供的业务函数，实现复杂的业务逻辑
 func (uc *TodoUsecase) CreateTodo(ctx context.Context, t *Todo) (*Todo, error) {
 	uc.log.WithContext(ctx).Infof("Create: %#v", t)
-	return uc.repo.Save(ctx, t) // 调用save函数
+	// 1. 生成token
+	accessScre := uc.conf.AccessToken.AccessSecret
+	accessExp := uc.conf.AccessToken.AccessExpire
+	accessToken, err := auth.GenerateToken(accessScre, time.Now().Unix(), accessExp, t.ID)
+	if err != nil {
+		uc.log.Errorf("generate accessToken failed : %v\n", err)
+		return nil, err
+	}
+	refreshScre := uc.conf.RefreshToken.RefreshSecret
+	refreshExp := uc.conf.RefreshToken.RefreshExpire
+	refreshToken, err := auth.GenerateToken(refreshScre, time.Now().Unix(), refreshExp, t.ID)
+	if err != nil {
+		uc.log.Errorf("generate refreshToken failed : %v\n", err)
+		return nil, err
+	}
+	// 2. 将生成的AccessToken写进上下文里面
+	fmt.Printf("----->AccessToken is %v\n", accessToken)
+	fmt.Printf("----->refreshToken is %v\n", refreshToken)
+	fmt.Printf("----->t.ID is %v\n", t.ID)
+	// 3. 存储数据，并将生成的RefreshToken放进redis中
+	u, err := uc.repo.Save(ctx, t)
+	if err != nil {
+		// 如果 Redis 存入失败，直接拦截，防止后续逻辑产生孤儿数据
+		return nil, errors.InternalServer("uc.repo.Save", "存储失败")
+	}
+	err = uc.repo.SetRefreshToken(ctx, u.ID, refreshToken, time.Duration(refreshExp)*time.Second)
+	if err != nil {
+		// 如果 Redis 存入失败，直接拦截，防止后续逻辑产生孤儿数据
+		return nil, errors.InternalServer("REDIS_ERROR", "存储失败")
+	}
+	return u, err // 调用save函数
 }
 
 // GetTodo creates a Todo, and returns the new Todo.

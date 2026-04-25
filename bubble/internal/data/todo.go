@@ -3,6 +3,8 @@ package data
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"bubble/internal/biz"
 
@@ -74,4 +76,14 @@ func (r *TodoRepo) ListAll(context.Context) ([]*biz.Todo, error) {
 
 	// 3. 返回查询到的结果
 	return res, nil
+}
+
+func (r *TodoRepo) SetRefreshToken(ctx context.Context, id int64, token string, expires time.Duration) error {
+	key := fmt.Sprintf("redis:refreshtoken:%v", id)
+	err := r.data.redis.Set(ctx, key, token, expires).Err()
+	if err != nil {
+		return err
+	}
+	fmt.Println("----->redis 设置成功")
+	return nil
 }
